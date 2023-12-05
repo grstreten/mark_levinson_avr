@@ -1,4 +1,4 @@
-"""Support for interface with an Harman/Kardon or JBL AVR."""
+"""Support for interface with a Mark Levinson AVR/Pre-Amplifier."""
 from __future__ import annotations
 
 import mlctrl
@@ -10,7 +10,7 @@ from homeassistant.components.media_player import (
     MediaPlayerEntityFeature,
     MediaPlayerState,
 )
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, DOMAIN
 from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -26,6 +26,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_PORT, default=DEFAULT_PORT): cv.port,
     }
 )
+
+DOMAIN = "mark_levinson_avr"
 
 
 def setup_platform(

@@ -1,6 +1,7 @@
 {
   "domain": "mark_levinson_avr",
   "name": "Mark Levinson AVR",
+  "version": "0.1",
   "codeowners": [],
   "documentation": "https://github.com/grstreten/mark_levinson_avr",
   "iot_class": "local_polling",

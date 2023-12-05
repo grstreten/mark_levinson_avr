@@ -1,8 +1,9 @@
-"""Support for interface with a Mark Levinson AVR/Pre-Amplifier."""
+"""Support for interface with an Harman/Kardon or JBL AVR."""
 from __future__ import annotations
 
-import mlctrl
+from .mlctrl import MLCtrl
 import voluptuous as vol
+from datetime import datetime, timedelta
 
 from homeassistant.components.media_player import (
     PLATFORM_SCHEMA,
@@ -10,7 +11,7 @@ from homeassistant.components.media_player import (
     MediaPlayerEntityFeature,
     MediaPlayerState,
 )
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, DOMAIN
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -18,6 +19,7 @@ from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 DEFAULT_NAME = "Mark Levinson AVR"
 DEFAULT_PORT = 15003
+SCAN_INTERVAL = timedelta(seconds=4)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
@@ -26,8 +28,6 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_PORT, default=DEFAULT_PORT): cv.port,
     }
 )
-
-DOMAIN = "mark_levinson_avr"
 
 
 def setup_platform(
@@ -41,7 +41,7 @@ def setup_platform(
     host = config[CONF_HOST]
     port = config[CONF_PORT]
 
-    avr = mlctrl.MLCtrl(host, port, name)
+    avr = MLCtrl(host, port, name)
     avr_device = MLAvrDevice(avr)
 
     add_entities([avr_device], True)
@@ -53,6 +53,7 @@ class MLAvrDevice(MediaPlayerEntity):
     _attr_supported_features = (
         MediaPlayerEntityFeature.VOLUME_STEP
         | MediaPlayerEntityFeature.VOLUME_MUTE
+        | MediaPlayerEntityFeature.VOLUME_SET
         | MediaPlayerEntityFeature.TURN_OFF
         | MediaPlayerEntityFeature.TURN_ON
         | MediaPlayerEntityFeature.SELECT_SOURCE
@@ -67,6 +68,8 @@ class MLAvrDevice(MediaPlayerEntity):
         self._port = avr.port
 
         self._source_list = avr.sources
+
+        self._volume = avr.volume / 100 if avr.volume else 0.0
 
         self._muted = avr.muted
         self._current_source = avr.current_source
@@ -83,6 +86,7 @@ class MLAvrDevice(MediaPlayerEntity):
         else:
             self._attr_state = None
 
+        self._volume = self._avr.volume / 100 if self._avr.volume else 0.0
         self._muted = self._avr.muted
         self._current_source = self._avr.current_source
 
@@ -125,6 +129,10 @@ class MLAvrDevice(MediaPlayerEntity):
     def volume_down(self) -> None:
         """Volume down AVR."""
         return self._avr.volume_down()
+
+    def set_volume_level(self, volume: float) -> None:
+        """Set volume level, range 0..1."""
+        return self._avr.set_volume(volume * 100)
 
     def mute_volume(self, mute: bool) -> None:
         """Send mute command."""

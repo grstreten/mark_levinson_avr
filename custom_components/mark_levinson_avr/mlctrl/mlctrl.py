@@ -13,7 +13,7 @@ import requests
 
 _LOGGER = logging.getLogger("MLCtrl")
 
-DEFAULT_SOURCES = ["TV", "Movie", "Music", "Game"]
+DEFAULT_SOURCES = []
 
 COMMAND_MAPPING = {
     "POWER_OFF": "RQST:CS:PWR:STANDBY",
@@ -72,10 +72,12 @@ class MLCtrl:
 
     def update_all(self):
         self.update_power_state()
-        self.update_sources()
-        self.update_current_source()
         self.update_volume()
         self.update_mutestate()
+
+        if self._power == POWER_ON:
+            self.update_current_source()
+            self.update_sources()
 
     def _get_new_socket(self):
         try:
